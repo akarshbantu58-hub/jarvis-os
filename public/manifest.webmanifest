@@ -1,7 +1,7 @@
 {
-  "name": "JARVIS Ultimate · AI Workspace",
-  "short_name": "JARVIS",
-  "description": "A visionOS-inspired AI-powered desktop workspace with chat, notes, voice, dev studio, and productivity tools.",
+  "name": "JARVIS OS · AK Creations",
+  "short_name": "JARVIS OS",
+  "description": "JARVIS OS by AK Creations — AI workspace with chat, voice, notes, and productivity tools.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
