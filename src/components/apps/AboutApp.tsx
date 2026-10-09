@@ -14,7 +14,7 @@ export function AboutApp() {
         An AI-powered desktop workspace inspired by visionOS. Chat with JARVIS, take notes,
         crunch numbers, and manage your day — all in one glassy interface.
       </p>
-      <div className="text-xs text-muted-foreground/70 mt-2">Powered by Lovable AI</div>
+      <div className="text-xs text-muted-foreground/70 mt-2">Created by AK Creations</div>
     </div>
   );
 }
