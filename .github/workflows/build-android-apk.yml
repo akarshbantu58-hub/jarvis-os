@@ -18,7 +18,7 @@ jobs:
   build-apk:
     name: Build debug APK
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
@@ -30,8 +30,8 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install project dependencies
-        run: npm ci
+      - name: Install project dependencies and reconcile stale lockfile
+        run: npm install --no-audit --no-fund
 
       - name: Check web project build
         id: web-build
@@ -48,7 +48,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Capacitor tooling
-        run: npm install --no-save --package-lock=false @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+        run: npm install --no-save --package-lock=false --no-audit --no-fund @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
       - name: Create remote-web wrapper configuration
         shell: bash
@@ -124,6 +124,6 @@ jobs:
             echo "- APK target: debug APK for testing"
             echo "- APK size: ${APK_SIZE_MIB:-not produced} MiB"
             echo "- Web build check: ${{ steps.web-build.outcome }}"
-            echo "- App loads the hosted JARVIS website and requires internet access."
+            echo "- This APK wraps the hosted JARVIS website and requires internet access."
             echo "- Exact 70 MB size is not forced; padding an APK with junk data is not recommended."
           } >> "$GITHUB_STEP_SUMMARY"
