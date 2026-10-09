@@ -1,0 +1,14 @@
+{
+  "name": "JARVIS Ultimate · AI Workspace",
+  "short_name": "JARVIS",
+  "description": "A visionOS-inspired AI-powered desktop workspace with chat, notes, voice, dev studio, and productivity tools.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0a1a",
+  "theme_color": "#0b0a1a",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "64x64 32x32 24x24 16x16", "type": "image/x-icon" }
+  ]
+}
