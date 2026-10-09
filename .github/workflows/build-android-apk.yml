@@ -1,0 +1,129 @@
+name: Build JARVIS OS Android APK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jarvis-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Check web project build
+        id: web-build
+        continue-on-error: true
+        run: npm run build
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Capacitor tooling
+        run: npm install --no-save --package-lock=false @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+
+      - name: Create remote-web wrapper configuration
+        shell: bash
+        run: |
+          mkdir -p www
+          cat > www/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+              <title>JARVIS OS</title>
+            </head>
+            <body>
+              <p>Connecting to JARVIS OS…</p>
+            </body>
+          </html>
+          HTML
+          cat > capacitor.config.ts <<'TS'
+          import type { CapacitorConfig } from '@capacitor/cli';
+
+          const config: CapacitorConfig = {
+            appId: 'com.akarsh.jarvisos',
+            appName: 'JARVIS OS',
+            webDir: 'www',
+            server: {
+              url: 'https://jarvisaiassistantbyakarshai.lovable.app',
+              cleartext: false
+            },
+            android: {
+              allowMixedContent: false
+            }
+          };
+
+          export default config;
+          TS
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync Capacitor project
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Report APK size
+        shell: bash
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          test -f "$APK"
+          BYTES=$(stat -c%s "$APK")
+          MIB=$(awk "BEGIN { printf \"%.2f\", $BYTES / 1048576 }")
+          echo "APK size: ${MIB} MiB (${BYTES} bytes)"
+          echo "APK_SIZE_MIB=${MIB}" >> "$GITHUB_ENV"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-os-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Build summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## JARVIS OS Android build"
+            echo ""
+            echo "- APK target: debug APK for testing"
+            echo "- APK size: ${APK_SIZE_MIB:-not produced} MiB"
+            echo "- Web build check: ${{ steps.web-build.outcome }}"
+            echo "- App loads the hosted JARVIS website and requires internet access."
+            echo "- Exact 70 MB size is not forced; padding an APK with junk data is not recommended."
+          } >> "$GITHUB_STEP_SUMMARY"
