@@ -35,7 +35,6 @@ jobs:
 
       - name: Check web project build
         id: web-build
-        continue-on-error: true
         run: npm run build
 
       - name: Set up Java 21
@@ -46,6 +45,12 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-35
+            build-tools;35.0.0
+          accept-android-sdk-licenses: true
 
       - name: Install Capacitor tooling
         run: npm install --no-save --package-lock=false --no-audit --no-fund @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
@@ -123,7 +128,6 @@ jobs:
             echo ""
             echo "- APK target: debug APK for testing"
             echo "- APK size: ${APK_SIZE_MIB:-not produced} MiB"
-            echo "- Web build check: ${{ steps.web-build.outcome }}"
             echo "- This APK wraps the hosted JARVIS website and requires internet access."
             echo "- Exact 70 MB size is not forced; padding an APK with junk data is not recommended."
           } >> "$GITHUB_STEP_SUMMARY"
