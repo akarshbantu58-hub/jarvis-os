@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { usePersonalization } from "@/lib/personalization";
 import { keyHeaders } from "@/lib/apiKeys";
+import { permissionCenter } from "@/core/permissionCenter";
 
 
 type VoiceState =
@@ -352,6 +353,13 @@ export function VoiceApp() {
     stopTTS();
     setPartial(null);
     setError(null);
+    try {
+      await permissionCenter.requestMicrophone();
+    } catch (permissionError: any) {
+      setError(permissionCenter.describeMicrophoneError(permissionError));
+      setState("error");
+      return;
+    }
     await startMicAnalyser();
     const rec = new SR();
     rec.lang = lang === "auto" ? (navigator.language || "en-IN") : lang;
