@@ -7,6 +7,7 @@ import {
 import { usePersonalization } from "@/lib/personalization";
 import { keyHeaders } from "@/lib/apiKeys";
 import { permissionCenter } from "@/core/permissionCenter";
+import { jarvisCoordinator } from "@/core/jarvisCoordinator";
 
 
 type VoiceState =
@@ -268,6 +269,7 @@ export function VoiceApp() {
     setState("thinking");
     setError(null);
     const userTurn: Turn = { id: crypto.randomUUID(), role: "user", text: userText };
+    jarvisCoordinator.remember("user", userText);
     const asstTurn: Turn = { id: crypto.randomUUID(), role: "assistant", text: "", partial: true };
     setTurns((t) => [...t, userTurn, asstTurn]);
 
@@ -338,7 +340,10 @@ export function VoiceApp() {
       const tail = speakBuf.trim();
       if (tail) enqueueSpeech(tail);
       setTurns((prev) => prev.map((t) => t.id === asstTurn.id ? { ...t, text: full, partial: false } : t));
-      if (full.trim()) setLastAssistantText(full);
+      if (full.trim()) {
+        setLastAssistantText(full);
+        jarvisCoordinator.remember("assistant", full);
+      }
       if (!full.trim()) { setState("success"); setTimeout(() => setState("idle"), 500); }
     } catch (e: any) {
       if (e?.name !== "AbortError") { setError(e?.message || "Assistant failed"); setState("error"); }
